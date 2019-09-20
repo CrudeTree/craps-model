@@ -1,18 +1,9 @@
-/*
-Jshell Commands in case erased
-import edu.cnm.deepdive.craps.model.Game;
-import java.security.SecureRandom
-Random rng = new SecureRandome();
-Game game = new Game(rng)
-game.play()
-game.getPercentage()
-for (int i = 0; 1 < 100; i++) {
-  game.play()
-}
- */
-
 package edu.cnm.deepdive.craps.model;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
 
 public class Game {
@@ -25,11 +16,13 @@ public class Game {
     this.rng = rng;
   }
 
-  public State play() {
+  public Round play() {
     State state = State.initial();
+    List<Roll> rolls = new LinkedList<>();
     int point = 0;
     do {
       Roll roll = new Roll(rng);
+      rolls.add(roll);
       state = state.next(point, roll);
       if (state == State.POINT && point == 0) {
         point = roll.getValue();
@@ -40,7 +33,7 @@ public class Game {
     } else {
       tally.lose();
     }
-    return state;
+    return new Round(state, rolls);
   }
 
   public int getWins() {
@@ -116,11 +109,11 @@ public class Game {
     private final int die1;
     private final int die2;
 
-    public Roll(Random rng) {
+    private Roll(Random rng) {
       this(1 + rng.nextInt(6), 1 + rng.nextInt(6));
     }
 
-    public Roll(int die1, int die2) {
+    private Roll(int die1, int die2) {
       this.die1 = die1;
       this.die2 = die2;
     }
@@ -141,6 +134,10 @@ public class Game {
       return die1 + die2;
     }
 
+    @Override
+    public String toString() {
+      return Arrays.toString(getDice());
+    }
   }
 
   private static class Tally {
@@ -176,6 +173,27 @@ public class Game {
     public void lose() {
       losses++;
     }
+
+  }
+
+  public static class Round {
+
+    private final State state;
+    private final List<Roll> rolls;
+
+    private Round(State state, List<Roll> rolls) {
+      this.state = state;
+      this.rolls = Collections.unmodifiableList(rolls);
+    }
+
+    public State getState() {
+      return state;
+    }
+
+    public List<Roll> getRolls() {
+      return rolls;
+    }
+
 
   }
 }
